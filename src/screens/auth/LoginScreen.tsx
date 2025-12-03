@@ -11,6 +11,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { theme } from '../../theme/theme';
 import { useAuth } from '../../navigation/RootNavigator';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
+import api from '../../services/app'
+
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -34,8 +36,24 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    // Mock sign-in; later call backend and check token
-    await signIn(pendingRole);
+    try {
+      // Call backend: POST /api/auth/login
+      const response = await api.post('/auth/login', {
+        email,
+        password,
+        role: pendingRole,
+      });
+
+      const { token, role } = response.data;
+
+      // Use real token + role from backend
+      await signIn(token, role);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.error ??
+        'Login failed. Please check your credentials and try again.';
+      Alert.alert('Login error', message);
+    }
   };
 
   return (
