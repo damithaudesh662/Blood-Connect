@@ -9,6 +9,7 @@ import { CreateRequestScreen } from "../screens/hospital/CreateRequestScreen";
 import { RequestDetailScreen } from "../screens/donor/RequestDetailScreen";
 import { DonorResponsesScreen } from "../screens/donor/DonorResponsesScreen";
 import { MapViewScreen } from "../screens/common/MapViewScreen";
+import { DonorProfileScreen } from "../screens/donor/DonorProfileScreen";
 
 export type AppStackParamList = {
   DonorHome: undefined;
@@ -30,6 +31,7 @@ export type AppStackParamList = {
     latitude: number;
     longitude: number;
   };
+  DonorProfile: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -62,6 +64,7 @@ export const AppNavigator: React.FC = () => {
       />
       <Stack.Screen name="DonorResponses" component={DonorResponsesScreen} />
       <Stack.Screen name="MapViewScreen" component={MapViewScreen} />
+      <Stack.Screen name="DonorProfile" component={DonorProfileScreen} />
     </Stack.Navigator>
   );
 };

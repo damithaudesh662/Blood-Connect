@@ -251,7 +251,6 @@
 // // //   },
 // // // });
 
-
 // // import React, { useEffect, useState } from 'react';
 // // import {
 // //   View,
@@ -527,9 +526,6 @@
 // //   },
 // // });
 
-
-
-
 // src/screens/donor/DonorHomeScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
@@ -547,6 +543,7 @@ import { DashboardCard } from "../../components/DashboardCard";
 import { useAuth } from "../../navigation/RootNavigator";
 import type { AppStackParamList } from "../../navigation/AppNavigator";
 import api from "../../services/app";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 type EmergencyRequest = {
   id: string | number;
@@ -654,9 +651,22 @@ export const DonorHomeScreen: React.FC = () => {
           <Text style={styles.appSubtitle}>Donor Dashboard</Text>
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.profileIconWrapper}
+            onPress={() => navigation.navigate("DonorProfile")}
+          >
+            <Ionicons
+              name="person-circle-outline"
+              size={28}
+              color={theme.colors.primary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.statsRow}>
@@ -724,6 +734,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: theme.spacing.lg,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: theme.spacing.sm,
+  },
+  profileIconWrapper: {
+    borderRadius: 999,
   },
   appTitle: {
     fontSize: 22,
