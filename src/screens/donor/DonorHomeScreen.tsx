@@ -1,5 +1,6 @@
 
 
+
 // // src/screens/donor/DonorHomeScreen.tsx
 // import React, { useEffect, useState } from "react";
 // import {
@@ -31,12 +32,30 @@
 
 // type NavProp = NativeStackNavigationProp<AppStackParamList, "DonorHome">;
 
+// type DonorProfile = {
+//   id: number;
+//   name: string;
+//   email: string;
+//   bloodGroup: string | null;
+//   role: string;
+//   donationCount: number;
+// };
+
+// type DonorResponseItem = {
+//   responseStatus: "Responded" | "Donated" | "Cancelled";
+//   respondedAt: string; // "DD Mon YYYY HH24:MI"
+// };
+
 // export const DonorHomeScreen: React.FC = () => {
 //   const { signOut } = useAuth();
 //   const navigation = useNavigation<NavProp>();
 
 //   const [requests, setRequests] = useState<EmergencyRequest[]>([]);
 //   const [loadingRequests, setLoadingRequests] = useState(false);
+
+//   const [profile, setProfile] = useState<DonorProfile | null>(null);
+//   const [lastDonationDate, setLastDonationDate] = useState<Date | null>(null);
+//   const [loadingProfile, setLoadingProfile] = useState(false);
 
 //   const loadNearbyRequests = async () => {
 //     try {
@@ -50,9 +69,82 @@
 //     }
 //   };
 
+//   // const parseRespondedAt = (s: string): Date | null => {
+//   //   // s like "04 Dec 2025 10:15"
+//   //   const parsed = Date.parse(s.replace(" ", " "));
+//   //   if (!Number.isNaN(parsed)) return new Date(parsed);
+//   //   return null;
+//   // };
+//   const parseRespondedAt = (s: string): Date | null => {
+//     const d = new Date(s);
+//     return Number.isNaN(d.getTime()) ? null : d;
+//   };
+
+//   const loadProfileAndLastDonation = async () => {
+//     try {
+//       setLoadingProfile(true);
+
+//       const [profileRes, responsesRes] = await Promise.all([
+//         api.get("/donor/profile"),
+//         api.get("/donor/responses"),
+//       ]);
+
+//       const profileData: DonorProfile = profileRes.data.profile;
+//       setProfile(profileData);
+
+//       const responses: DonorResponseItem[] =
+//         responsesRes.data.responses ?? [];
+
+//       const donatedDates: Date[] = responses
+//         .filter((r) => r.responseStatus === "Donated")
+//         .map((r) => parseRespondedAt(r.respondedAt))
+//         .filter((d): d is Date => d !== null);
+
+//       if (donatedDates.length > 0) {
+//         const latest = donatedDates.reduce((max, d) =>
+//           d > max ? d : max
+//         );
+//         setLastDonationDate(latest);
+//       } else {
+//         setLastDonationDate(null);
+//       }
+//     } catch (e) {
+//       console.log("Failed to load donor profile or donations", e);
+//     } finally {
+//       setLoadingProfile(false);
+//     }
+//   };
+
 //   useEffect(() => {
 //     loadNearbyRequests();
+//     loadProfileAndLastDonation();
 //   }, []);
+
+//   const computeEligibility = () => {
+//     if (!lastDonationDate) {
+//       return {
+//         nextEligibleLabel: "Eligible now",
+//         lastDonationLabel: "No previous donations",
+//       };
+//     }
+
+//     const intervalMonths = 4; // example safety interval
+//     const next = new Date(lastDonationDate);
+//     next.setMonth(next.getMonth() + intervalMonths);
+
+//     const today = new Date();
+//     const eligibleNow = today >= next;
+
+//     const nextStr = next.toDateString();
+//     const lastStr = lastDonationDate.toDateString();
+
+//     return {
+//       nextEligibleLabel: eligibleNow ? "Eligible now" : nextStr,
+//       lastDonationLabel: lastStr,
+//     };
+//   };
+
+//   const eligibility = computeEligibility();
 
 //   const renderRequestItem = ({ item }: { item: EmergencyRequest }) => {
 //     return (
@@ -146,19 +238,27 @@
 //       <View style={styles.statsRow}>
 //         <DashboardCard
 //           title="Next eligible"
-//           value="12 Jan 2026"
+//           value={
+//             loadingProfile ? "..." : eligibility.nextEligibleLabel
+//           }
 //           subtitle="Based on last donation"
 //           style={styles.statCard}
 //         />
 //         <DashboardCard
 //           title="Last donation"
-//           value="20 Sep 2025"
-//           subtitle="Badulla Hospital"
+//           value={
+//             loadingProfile ? "..." : eligibility.lastDonationLabel
+//           }
+//           subtitle=""
 //           style={styles.statCard}
 //         />
 //         <DashboardCard
 //           title="Total donations"
-//           value="5"
+//           value={
+//             loadingProfile || !profile
+//               ? "..."
+//               : String(profile.donationCount)
+//           }
 //           subtitle="Thank you!"
 //           style={styles.statCard}
 //         />
@@ -170,7 +270,7 @@
 //           style={styles.responsesButton}
 //           onPress={() => navigation.navigate("DonorResponses")}
 //         >
-//           <Text style={styles.responsesButtonText}>My responded requests</Text>
+//           <Text style={styles.responsesButtonText}>My responded</Text>
 //         </TouchableOpacity>
 //       </View>
 
@@ -364,12 +464,19 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Pedometer } from "expo-sensors";
 import { theme } from "../../theme/theme";
 import { DashboardCard } from "../../components/DashboardCard";
 import { useAuth } from "../../navigation/RootNavigator";
 import type { AppStackParamList } from "../../navigation/AppNavigator";
 import api from "../../services/app";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import {
+  loadStepHistory,
+  saveTodaySteps,
+  getLastNDays,
+  type StepHistoryEntry,
+} from "../../services/steps";
 
 type EmergencyRequest = {
   id: string | number;
@@ -394,7 +501,7 @@ type DonorProfile = {
 
 type DonorResponseItem = {
   responseStatus: "Responded" | "Donated" | "Cancelled";
-  respondedAt: string; // "DD Mon YYYY HH24:MI"
+  respondedAt: string; // ISO string
 };
 
 export const DonorHomeScreen: React.FC = () => {
@@ -408,6 +515,10 @@ export const DonorHomeScreen: React.FC = () => {
   const [lastDonationDate, setLastDonationDate] = useState<Date | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
 
+  const [todaySteps, setTodaySteps] = useState(0);
+  const [stepHistory, setStepHistory] = useState<StepHistoryEntry[]>([]);
+  const [stepAvailable, setStepAvailable] = useState<boolean | null>(null);
+
   const loadNearbyRequests = async () => {
     try {
       setLoadingRequests(true);
@@ -420,12 +531,6 @@ export const DonorHomeScreen: React.FC = () => {
     }
   };
 
-  // const parseRespondedAt = (s: string): Date | null => {
-  //   // s like "04 Dec 2025 10:15"
-  //   const parsed = Date.parse(s.replace(" ", " "));
-  //   if (!Number.isNaN(parsed)) return new Date(parsed);
-  //   return null;
-  // };
   const parseRespondedAt = (s: string): Date | null => {
     const d = new Date(s);
     return Number.isNaN(d.getTime()) ? null : d;
@@ -466,9 +571,44 @@ export const DonorHomeScreen: React.FC = () => {
     }
   };
 
+  const setupPedometer = () => {
+    let subscription: any;
+
+    const subscribe = async () => {
+      const isAvailable = await Pedometer.isAvailableAsync();
+      setStepAvailable(isAvailable);
+      if (!isAvailable) return;
+
+      const end = new Date();
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+
+      const result = await Pedometer.getStepCountAsync(start, end);
+      const baseSteps = result?.steps ?? 0;
+      setTodaySteps(baseSteps);
+      await saveTodaySteps(baseSteps);
+      setStepHistory(await loadStepHistory());
+
+      subscription = Pedometer.watchStepCount(async (res) => {
+        const newSteps = baseSteps + res.steps;
+        setTodaySteps(newSteps);
+        await saveTodaySteps(newSteps);
+        setStepHistory(await loadStepHistory());
+      });
+    };
+
+    subscribe();
+
+    return () => {
+      if (subscription) subscription.remove();
+    };
+  };
+
   useEffect(() => {
     loadNearbyRequests();
     loadProfileAndLastDonation();
+    const unsub = setupPedometer();
+    return unsub;
   }, []);
 
   const computeEligibility = () => {
@@ -479,7 +619,7 @@ export const DonorHomeScreen: React.FC = () => {
       };
     }
 
-    const intervalMonths = 4; // example safety interval
+    const intervalMonths = 4;
     const next = new Date(lastDonationDate);
     next.setMonth(next.getMonth() + intervalMonths);
 
@@ -496,6 +636,14 @@ export const DonorHomeScreen: React.FC = () => {
   };
 
   const eligibility = computeEligibility();
+
+  const last7 = getLastNDays(stepHistory, 7);
+  const avg7 =
+    last7.length === 0
+      ? 0
+      : Math.round(
+          last7.reduce((sum, d) => sum + d.steps, 0) / last7.length
+        );
 
   const renderRequestItem = ({ item }: { item: EmergencyRequest }) => {
     return (
@@ -589,28 +737,45 @@ export const DonorHomeScreen: React.FC = () => {
       <View style={styles.statsRow}>
         <DashboardCard
           title="Next eligible"
-          value={
-            loadingProfile ? "..." : eligibility.nextEligibleLabel
-          }
+          value={loadingProfile ? "..." : eligibility.nextEligibleLabel}
           subtitle="Based on last donation"
           style={styles.statCard}
         />
         <DashboardCard
           title="Last donation"
-          value={
-            loadingProfile ? "..." : eligibility.lastDonationLabel
-          }
+          value={loadingProfile ? "..." : eligibility.lastDonationLabel}
           subtitle=""
           style={styles.statCard}
         />
         <DashboardCard
           title="Total donations"
           value={
-            loadingProfile || !profile
-              ? "..."
-              : String(profile.donationCount)
+            loadingProfile || !profile ? "..." : String(profile.donationCount)
           }
           subtitle="Thank you!"
+          style={styles.statCard}
+        />
+      </View>
+
+      <View style={styles.statsRow}>
+        <DashboardCard
+          title="Today's steps"
+          value={
+            stepAvailable === false
+              ? "N/A"
+              : String(todaySteps)
+          }
+          subtitle={
+            stepAvailable === false
+              ? "Pedometer not available"
+              : "Keep moving!"
+          }
+          style={styles.statCard}
+        />
+        <DashboardCard
+          title="7-day avg"
+          value={stepAvailable === false ? "N/A" : String(avg7)}
+          subtitle="steps / day"
           style={styles.statCard}
         />
       </View>
