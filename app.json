@@ -28,6 +28,12 @@
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "1d36c994-008d-4ac2-b510-1a36dcb172a0"
+      }
+    },
+    "owner": "nipunviraj24expo"
   }
 }
