@@ -29,7 +29,7 @@ export const AuthNavigator: React.FC = () => {
       <Stack.Screen
         name="Register"
         component={RegisterScreen}
-        options={{ title: 'Create account' }}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

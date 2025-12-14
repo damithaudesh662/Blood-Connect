@@ -1,196 +1,3 @@
-// import React, { useState } from "react";
-// import {
-//   View,
-//   Text,
-//   TextInput,
-//   StyleSheet,
-//   TouchableOpacity,
-//   Alert,
-//   ActivityIndicator,
-// } from "react-native";
-// import { NativeStackScreenProps } from "@react-navigation/native-stack";
-// import { theme } from "../../theme/theme";
-// import { useAuth } from "../../navigation/RootNavigator";
-// import type { AuthStackParamList } from "../../navigation/AuthNavigator";
-// import api from "../../services/app";
-
-// type Props = NativeStackScreenProps<AuthStackParamList, "Register">;
-
-// export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
-//   const { pendingRole } = useAuth();
-//   const [name, setName] = useState("");
-//   const [bloodGroup, setBloodGroup] = useState("");
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [location, setLocation] = useState("");
-//   const [loading, setLoading] = useState(false);
-
-//   const title =
-//     pendingRole === "hospital" ? "Hospital Register" : "Donor Register";
-
-//   const handleRegister = async () => {
-//     if (!pendingRole) {
-//       Alert.alert("Error", "Please choose Donor or Hospital first.");
-//       return;
-//     }
-
-//     if (!name || !email || !password) {
-//       Alert.alert("Validation", "Name, email and password are required.");
-//       return;
-//     }
-
-//     if (pendingRole === "donor" && !bloodGroup) {
-//       Alert.alert(
-//         "Validation",
-//         "Blood group is required for donor registration."
-//       );
-//       return;
-//     }
-
-//     try {
-//       setLoading(true);
-//       console.log("Registering user:", {
-//         name,
-//         email,
-//         password,
-//         location,
-//         role: pendingRole,
-//         bloodGroup: pendingRole === "donor" ? bloodGroup : null,
-//       });
-
-//       // POST /api/auth/register
-//       await api.post("/auth/register", {
-//         name,
-//         email,
-//         password,
-//         location,
-//         role: pendingRole, // 'donor' or 'hospital'
-//         bloodGroup: pendingRole === "donor" ? bloodGroup : null,
-//       });
-
-//       console.log("Registration successful");
-
-//       Alert.alert(
-//         "Success",
-//         "Account created. Please login with your credentials.",
-//         [
-//           {
-//             text: "OK",
-//             onPress: () => navigation.goBack(),
-//           },
-//         ]
-//       );
-//     } catch (error: any) {
-//       const message =
-//         error?.response?.data?.error ?? "Could not register. Please try again.";
-//       Alert.alert("Registration error", message);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.title}>{title}</Text>
-
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Full name"
-//         placeholderTextColor="#999"
-//         value={name}
-//         onChangeText={setName}
-//       />
-
-//       {pendingRole === "donor" && (
-//         <TextInput
-//           style={styles.input}
-//           placeholder="Blood group (e.g., A+)"
-//           placeholderTextColor="#999"
-//           value={bloodGroup}
-//           onChangeText={setBloodGroup}
-//         />
-//       )}
-
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Email"
-//         placeholderTextColor="#999"
-//         value={email}
-//         onChangeText={setEmail}
-//         keyboardType="email-address"
-//         autoCapitalize="none"
-//       />
-
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Password"
-//         placeholderTextColor="#999"
-//         value={password}
-//         onChangeText={setPassword}
-//         secureTextEntry
-//       />
-
-//       <TextInput
-//         style={styles.input}
-//         placeholder="Location"
-//         placeholderTextColor="#999"
-//         value={location}
-//         onChangeText={setLocation}
-
-//       />
-
-//       <TouchableOpacity
-//         style={[styles.registerButton, loading && { opacity: 0.7 }]}
-//         onPress={handleRegister}
-//         disabled={loading}
-//       >
-//         {loading ? (
-//           <ActivityIndicator color={theme.colors.textOnPrimary} />
-//         ) : (
-//           <Text style={styles.registerButtonText}>Register</Text>
-//         )}
-//       </TouchableOpacity>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: theme.colors.background,
-//     padding: theme.spacing.lg,
-//     justifyContent: "center",
-//   },
-//   title: {
-//     fontSize: 24,
-//     fontWeight: "bold",
-//     color: theme.colors.primary,
-//     marginBottom: theme.spacing.lg,
-//     textAlign: "center",
-//   },
-//   input: {
-//     borderWidth: 1,
-//     borderColor: theme.colors.border,
-//     borderRadius: theme.radius.md,
-//     paddingHorizontal: theme.spacing.md,
-//     paddingVertical: theme.spacing.sm,
-//     marginBottom: theme.spacing.md,
-//     backgroundColor: "#FFFFFF",
-//   },
-//   registerButton: {
-//     backgroundColor: theme.colors.primaryLight,
-//     paddingVertical: theme.spacing.md,
-//     borderRadius: theme.radius.md,
-//     alignItems: "center",
-//     marginTop: theme.spacing.sm,
-//   },
-//   registerButtonText: {
-//     color: theme.colors.textOnPrimary,
-//     fontSize: 16,
-//     fontWeight: "600",
-//   },
-// });
-
 import React, { useState } from "react";
 import {
   View,
@@ -200,10 +7,14 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform,
+  Modal,
+  SafeAreaView,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Location from "expo-location";
 import { Picker } from "@react-native-picker/picker";
+import { Ionicons } from "@expo/vector-icons"; // <--- IMPORT ADDED
 import { theme } from "../../theme/theme";
 import { useAuth } from "../../navigation/RootNavigator";
 import type { AuthStackParamList } from "../../navigation/AuthNavigator";
@@ -226,6 +37,9 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [locLoading, setLocLoading] = useState(false);
+
+  // State to handle iOS Modal visibility
+  const [showPicker, setShowPicker] = useState(false);
 
   const title =
     pendingRole === "hospital" ? "Hospital Register" : "Donor Register";
@@ -326,6 +140,15 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* --- BACK BUTTON ADDED HERE --- */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
+      </TouchableOpacity>
+      {/* ----------------------------- */}
+
       <Text style={styles.title}>{title}</Text>
 
       <TextInput
@@ -339,23 +162,91 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       {pendingRole === "donor" && (
         <View style={styles.dropdownContainer}>
           <Text style={styles.dropdownLabel}>Blood group</Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={bloodGroup}
-              onValueChange={(value) => setBloodGroup(value)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Select blood group" value="" color="#999" />
-              {BLOOD_TYPES.map((type) => (
+
+          {/* Platform specific rendering */}
+          {Platform.OS === "android" ? (
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={bloodGroup}
+                onValueChange={(value) => setBloodGroup(value)}
+                style={styles.picker}
+              >
                 <Picker.Item
-                  key={type}
-                  label={type}
-                  value={type}
-                  color={theme.colors.text}
+                  label="Select blood group"
+                  value=""
+                  color="#999"
                 />
-              ))}
-            </Picker>
-          </View>
+                {BLOOD_TYPES.map((type) => (
+                  <Picker.Item
+                    key={type}
+                    label={type}
+                    value={type}
+                    color={theme.colors.text}
+                  />
+                ))}
+              </Picker>
+            </View>
+          ) : (
+            // iOS Implementation: A button that opens a Modal
+            <>
+              <TouchableOpacity
+                style={[styles.input, styles.iosPickerButton]}
+                onPress={() => setShowPicker(true)}
+              >
+                <Text
+                  style={
+                    bloodGroup
+                      ? styles.iosPickerText
+                      : styles.iosPickerPlaceholder
+                  }
+                >
+                  {bloodGroup || "Select blood group"}
+                </Text>
+              </TouchableOpacity>
+
+              <Modal
+                transparent={true}
+                animationType="slide"
+                visible={showPicker}
+                onRequestClose={() => setShowPicker(false)}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.modalContent}>
+                    {/* Toolbar with Done button */}
+                    <View style={styles.modalToolbar}>
+                      <TouchableOpacity
+                        onPress={() => setShowPicker(false)}
+                        style={styles.modalDoneButton}
+                      >
+                        <Text style={styles.modalDoneText}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* The Actual Picker Wheel */}
+                    <Picker
+                      selectedValue={bloodGroup}
+                      onValueChange={(value) => setBloodGroup(value)}
+                      style={{ height: 215, width: "100%" }} // Standard iOS Picker Height
+                    >
+                      <Picker.Item
+                        label="Select blood group"
+                        value=""
+                        color="#999"
+                      />
+                      {BLOOD_TYPES.map((type) => (
+                        <Picker.Item
+                          key={type}
+                          label={type}
+                          value={type}
+                          color={theme.colors.text}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
+              </Modal>
+            </>
+          )}
         </View>
       )}
 
@@ -421,6 +312,15 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     justifyContent: "center",
   },
+  // --- NEW STYLE ADDED ---
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+  },
+  // -----------------------
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -434,8 +334,11 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
+    height: 44, // Enforcing height consistency
+    justifyContent: "center",
     marginBottom: theme.spacing.md,
     backgroundColor: "#FFFFFF",
+    color: theme.colors.text,
   },
   dropdownContainer: {
     marginBottom: theme.spacing.md,
@@ -450,11 +353,52 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radius.md,
     backgroundColor: "#FFFFFF",
+    // Android picker usually handles its own height well within a view
   },
   picker: {
-    height: 44,
+    height: 50, // Standard android touch target
     width: "100%",
   },
+  // New Styles for iOS Interaction
+  iosPickerButton: {
+    justifyContent: "center",
+  },
+  iosPickerText: {
+    color: theme.colors.text,
+  },
+  iosPickerPlaceholder: {
+    color: "#999",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  modalToolbar: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    backgroundColor: "#f8f8f8",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  modalDoneButton: {
+    paddingHorizontal: 10,
+  },
+  modalDoneText: {
+    color: theme.colors.primary,
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  // End new styles
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -470,6 +414,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.radius.md,
+    height: 44,
+    justifyContent: "center",
   },
   locButtonText: {
     color: theme.colors.textOnPrimary,
