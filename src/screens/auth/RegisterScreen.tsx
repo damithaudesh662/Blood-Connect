@@ -14,6 +14,7 @@ import {
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Location from "expo-location";
 import { Picker } from "@react-native-picker/picker";
+import { Ionicons } from "@expo/vector-icons"; // <--- IMPORT ADDED
 import { theme } from "../../theme/theme";
 import { useAuth } from "../../navigation/RootNavigator";
 import type { AuthStackParamList } from "../../navigation/AuthNavigator";
@@ -139,6 +140,15 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* --- BACK BUTTON ADDED HERE --- */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
+      </TouchableOpacity>
+      {/* ----------------------------- */}
+
       <Text style={styles.title}>{title}</Text>
 
       <TextInput
@@ -152,16 +162,20 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       {pendingRole === "donor" && (
         <View style={styles.dropdownContainer}>
           <Text style={styles.dropdownLabel}>Blood group</Text>
-          
+
           {/* Platform specific rendering */}
-          {Platform.OS === 'android' ? (
+          {Platform.OS === "android" ? (
             <View style={styles.pickerWrapper}>
               <Picker
                 selectedValue={bloodGroup}
                 onValueChange={(value) => setBloodGroup(value)}
                 style={styles.picker}
               >
-                <Picker.Item label="Select blood group" value="" color="#999" />
+                <Picker.Item
+                  label="Select blood group"
+                  value=""
+                  color="#999"
+                />
                 {BLOOD_TYPES.map((type) => (
                   <Picker.Item
                     key={type}
@@ -175,11 +189,17 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           ) : (
             // iOS Implementation: A button that opens a Modal
             <>
-              <TouchableOpacity 
-                style={[styles.input, styles.iosPickerButton]} 
+              <TouchableOpacity
+                style={[styles.input, styles.iosPickerButton]}
                 onPress={() => setShowPicker(true)}
               >
-                <Text style={bloodGroup ? styles.iosPickerText : styles.iosPickerPlaceholder}>
+                <Text
+                  style={
+                    bloodGroup
+                      ? styles.iosPickerText
+                      : styles.iosPickerPlaceholder
+                  }
+                >
                   {bloodGroup || "Select blood group"}
                 </Text>
               </TouchableOpacity>
@@ -194,21 +214,25 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
                   <View style={styles.modalContent}>
                     {/* Toolbar with Done button */}
                     <View style={styles.modalToolbar}>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         onPress={() => setShowPicker(false)}
                         style={styles.modalDoneButton}
                       >
                         <Text style={styles.modalDoneText}>Done</Text>
                       </TouchableOpacity>
                     </View>
-                    
+
                     {/* The Actual Picker Wheel */}
                     <Picker
                       selectedValue={bloodGroup}
                       onValueChange={(value) => setBloodGroup(value)}
-                      style={{ height: 215, width: '100%' }} // Standard iOS Picker Height
+                      style={{ height: 215, width: "100%" }} // Standard iOS Picker Height
                     >
-                       <Picker.Item label="Select blood group" value="" color="#999" />
+                      <Picker.Item
+                        label="Select blood group"
+                        value=""
+                        color="#999"
+                      />
                       {BLOOD_TYPES.map((type) => (
                         <Picker.Item
                           key={type}
@@ -288,6 +312,15 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     justifyContent: "center",
   },
+  // --- NEW STYLE ADDED ---
+  backButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+  },
+  // -----------------------
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -302,7 +335,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     height: 44, // Enforcing height consistency
-    justifyContent: 'center',
+    justifyContent: "center",
     marginBottom: theme.spacing.md,
     backgroundColor: "#FFFFFF",
     color: theme.colors.text,
@@ -328,32 +361,32 @@ const styles = StyleSheet.create({
   },
   // New Styles for iOS Interaction
   iosPickerButton: {
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   iosPickerText: {
     color: theme.colors.text,
   },
   iosPickerPlaceholder: {
-    color: '#999',
+    color: "#999",
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 20,
   },
   modalToolbar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: '#f8f8f8',
+    borderBottomColor: "#eee",
+    backgroundColor: "#f8f8f8",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -362,7 +395,7 @@ const styles = StyleSheet.create({
   },
   modalDoneText: {
     color: theme.colors.primary,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
   },
   // End new styles
@@ -382,7 +415,7 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.sm,
     borderRadius: theme.radius.md,
     height: 44,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   locButtonText: {
     color: theme.colors.textOnPrimary,
