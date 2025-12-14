@@ -15,14 +15,28 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Location from "expo-location";
 import { Picker } from "@react-native-picker/picker";
 import { Ionicons } from "@expo/vector-icons"; // <--- IMPORT ADDED
+import * as Notifications from 'expo-notifications'; // <--- EXPO NOTIFICATIONS IMPORT
 import { theme } from "../../theme/theme";
 import { useAuth } from "../../navigation/RootNavigator";
 import type { AuthStackParamList } from "../../navigation/AuthNavigator";
 import api from "../../services/app";
 
+
 type Props = NativeStackScreenProps<AuthStackParamList, "Register">;
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    // Add these two properties to satisfy the TypeScript type 'NotificationBehavior'
+    shouldShowBanner: true,  // <--- ADDED
+    shouldShowList: true,    // <--- ADDED
+  }),
+});
+
 
 export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const { pendingRole } = useAuth();
@@ -75,14 +89,18 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleRegister = async () => {
+const handleRegister = async () => {
+    console.log("--- START REGISTER HANDLER ---");
+
     if (!pendingRole) {
       Alert.alert("Error", "Please choose Donor or Hospital first.");
+      console.error("DEBUG: Failed validation - pendingRole is null.");
       return;
     }
 
     if (!name || !email || !password) {
       Alert.alert("Validation", "Name, email and password are required.");
+      console.error("DEBUG: Failed validation - missing basic fields.");
       return;
     }
 
@@ -91,6 +109,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         "Validation",
         "Blood group is required for donor registration."
       );
+      console.error("DEBUG: Failed validation - Donor missing bloodGroup.");
       return;
     }
 
@@ -99,25 +118,87 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         "Validation",
         "Please set your location using the GPS button."
       );
+      console.error("DEBUG: Failed validation - missing coordinates.");
       return;
     }
 
     try {
       setLoading(true);
+      console.log(`DEBUG: Starting registration for role: ${pendingRole}`);
+
+      // --- EXPO TOKEN LOGIC START ---
+      let fcmToken = null;
+      if (pendingRole === 'donor') {
+        try {
+          console.log("DEBUG: Donor role detected. Attempting to get Expo Token.");
+          
+          // 1. Check/Request Notification Permissions
+          console.log("DEBUG: Awaiting getPermissionsAsync...");
+          const { status: existingStatus } = await Notifications.getPermissionsAsync();
+          let finalStatus = existingStatus;
+          console.log(`DEBUG: Existing permission status: ${existingStatus}`);
+          
+          if (existingStatus !== 'granted') {
+            console.log("DEBUG: Requesting new notification permission...");
+            const { status } = await Notifications.requestPermissionsAsync();
+            finalStatus = status;
+            console.log(`DEBUG: New permission status: ${finalStatus}`);
+          }
+
+          if (finalStatus === 'granted') {
+            // 2. Get the Expo Push Token
+            console.log("DEBUG: Permission granted. Awaiting getExpoPushTokenAsync...");
+
+            const PROJECT_ID = process.env.EXPO_PUBLIC_PROJECT_ID; 
+
+            console.log(`DEBUG: Retrieved PROJECT_ID from env: ${PROJECT_ID}`);
+            
+            if (!PROJECT_ID) {
+                console.error("FATAL: EXPO_PUBLIC_PROJECT_ID is not defined.");
+                // Add an alert here if you want to notify the developer
+                throw new Error("Missing EXPO_PUBLIC_PROJECT_ID");
+            }
+
+            const tokenObject = await Notifications.getExpoPushTokenAsync({
+                projectId: PROJECT_ID, // <--- Using the environment variable
+            });
+      
+
+            fcmToken = tokenObject.data;
+            console.log(`DEBUG: Successfully acquired Expo Push Token: ${fcmToken}`);
+          } else {
+            console.error("DEBUG: Notification permission NOT granted. Token will be null.");
+          }
+
+        } catch (tokenError) {
+          console.error("DEBUG: FATAL ERROR during Expo Token retrieval:", tokenError);
+          // Proceed with registration even if token fails, token will be null
+        }
+      }
+      // --- EXPO TOKEN LOGIC END ---
 
       const locationArray: [number, number] = [
         coords.latitude,
         coords.longitude,
       ];
 
-      await api.post("/auth/register", {
+      const registrationPayload = {
         name,
         email,
         password,
         role: pendingRole,
         bloodGroup: pendingRole === "donor" ? bloodGroup : null,
         location: locationArray,
-      });
+        fcmToken: fcmToken, // This is the Expo Token
+      };
+      
+      console.log(`DEBUG: Sending API POST to /auth/register with payload (check backend log for fcmToken): ${JSON.stringify(registrationPayload)}`);
+      
+      // --- API CALL START ---
+      await api.post("/auth/register", registrationPayload);
+      console.log("DEBUG: API POST successful! Backend returned 201.");
+      // --- API CALL END ---
+
 
       Alert.alert(
         "Success",
@@ -129,12 +210,20 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           },
         ]
       );
+      console.log("--- END REGISTER HANDLER (SUCCESS) ---");
     } catch (error: any) {
+      console.error("DEBUG: FATAL ERROR caught in final catch block.");
+      console.error("DEBUG: Full error object:", error);
+      
+      // Note: error?.response?.data?.error checks for Axios error structure.
       const message =
         error?.response?.data?.error ?? "Could not register. Please try again.";
       Alert.alert("Registration error", message);
+      console.error(`DEBUG: Displayed user error: ${message}`);
+      
     } finally {
       setLoading(false);
+      console.log("DEBUG: setLoading(false) executed.");
     }
   };
 
