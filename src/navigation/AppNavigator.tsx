@@ -33,6 +33,8 @@ export type AppStackParamList = {
     hospitalName: string;
     latitude: number;
     longitude: number;
+    donorLat?: number;
+    donorLng?: number;
   };
   DonorProfile: undefined;
   HospitalEditRequest: {
