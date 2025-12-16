@@ -1,4 +1,3 @@
-
 // import React, { useState } from 'react';
 // import {
 //   View,
@@ -18,19 +17,22 @@
 
 // export const CreateRequestScreen: React.FC<Props> = ({ navigation }) => {
 //   const [bloodType, setBloodType] = useState('');
-//   const [units, setUnits] = useState('');
+//   const [persons, setPersons] = useState('');
 //   const [notes, setNotes] = useState('');
 //   const [loading, setLoading] = useState(false);
 
 //   const handleSubmit = async () => {
-//     if (!bloodType || !units) {
-//       Alert.alert('Validation', 'Blood type and units are required.');
+//     if (!bloodType || !persons) {
+//       Alert.alert('Validation', 'Blood type and number of persons are required.');
 //       return;
 //     }
 
-//     const unitsNumber = Number(units);
-//     if (Number.isNaN(unitsNumber) || unitsNumber <= 0) {
-//       Alert.alert('Validation', 'Units must be a positive number.');
+//     const personsNumber = Number(persons);
+//     if (Number.isNaN(personsNumber) || personsNumber <= 0) {
+//       Alert.alert(
+//         'Validation',
+//         'Number of persons must be a positive number.'
+//       );
 //       return;
 //     }
 
@@ -39,7 +41,7 @@
 //       // POST /api/hospital/requests
 //       await api.post('/hospital/requests', {
 //         bloodType,
-//         units: unitsNumber,
+//         persons: personsNumber,
 //         notes,
 //       });
 
@@ -73,10 +75,10 @@
 
 //       <TextInput
 //         style={styles.input}
-//         placeholder="Units needed (e.g., 4)"
+//         placeholder="Number of persons needed (e.g., 4)"
 //         placeholderTextColor="#999"
-//         value={units}
-//         onChangeText={setUnits}
+//         value={persons}
+//         onChangeText={setPersons}
 //         keyboardType="number-pad"
 //       />
 
@@ -143,8 +145,7 @@
 //   },
 // });
 
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -153,55 +154,57 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { theme } from '../../theme/theme';
-import type { AppStackParamList } from '../../navigation/AppNavigator';
-import api from '../../services/app';
+} from "react-native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { Picker } from "@react-native-picker/picker";
+import { theme } from "../../theme/theme";
+import type { AppStackParamList } from "../../navigation/AppNavigator";
+import api from "../../services/app";
 
-type Props = NativeStackScreenProps<AppStackParamList, 'CreateRequest'>;
+type Props = NativeStackScreenProps<AppStackParamList, "CreateRequest">;
+
+const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 export const CreateRequestScreen: React.FC<Props> = ({ navigation }) => {
-  const [bloodType, setBloodType] = useState('');
-  const [persons, setPersons] = useState('');
-  const [notes, setNotes] = useState('');
+  const [bloodType, setBloodType] = useState("");
+  const [persons, setPersons] = useState("");
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!bloodType || !persons) {
-      Alert.alert('Validation', 'Blood type and number of persons are required.');
+      Alert.alert(
+        "Validation",
+        "Blood type and number of persons are required."
+      );
       return;
     }
 
     const personsNumber = Number(persons);
     if (Number.isNaN(personsNumber) || personsNumber <= 0) {
-      Alert.alert(
-        'Validation',
-        'Number of persons must be a positive number.'
-      );
+      Alert.alert("Validation", "Number of persons must be a positive number.");
       return;
     }
 
     try {
       setLoading(true);
-      // POST /api/hospital/requests
-      await api.post('/hospital/requests', {
+      await api.post("/hospital/requests", {
         bloodType,
         persons: personsNumber,
         notes,
       });
 
-      Alert.alert('Success', 'Request created.', [
+      Alert.alert("Success", "Request created.", [
         {
-          text: 'OK',
+          text: "OK",
           onPress: () => navigation.goBack(),
         },
       ]);
     } catch (error: any) {
       const message =
         error?.response?.data?.error ??
-        'Could not create request. Please try again.';
-      Alert.alert('Error', message);
+        "Could not create request. Please try again.";
+      Alert.alert("Error", message);
     } finally {
       setLoading(false);
     }
@@ -211,13 +214,19 @@ export const CreateRequestScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Create blood request</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Blood type (e.g., O+)"
-        placeholderTextColor="#999"
-        value={bloodType}
-        onChangeText={setBloodType}
-      />
+      <Text style={styles.label}>Blood type</Text>
+      <View style={styles.pickerWrapper}>
+        <Picker
+          selectedValue={bloodType}
+          onValueChange={(value) => setBloodType(value)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Select blood type..." value="" />
+          {BLOOD_TYPES.map((bt) => (
+            <Picker.Item key={bt} label={bt} value={bt} />
+          ))}
+        </Picker>
+      </View>
 
       <TextInput
         style={styles.input}
@@ -260,9 +269,27 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: theme.colors.primary,
     marginBottom: theme.spacing.lg,
+  },
+  label: {
+    fontSize: 14,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.xs,
+    fontWeight: "500",
+  },
+  pickerWrapper: {
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
+    marginBottom: theme.spacing.md,
+    backgroundColor: "#FFFFFF",
+    overflow: "hidden",
+  },
+  picker: {
+    height: 60,
+    width: "100%",
   },
   input: {
     borderWidth: 1,
@@ -271,22 +298,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
     marginBottom: theme.spacing.md,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   notesInput: {
     height: 100,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   submitButton: {
     backgroundColor: theme.colors.primary,
     paddingVertical: theme.spacing.md,
     borderRadius: theme.radius.md,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: theme.spacing.md,
   },
   submitText: {
     color: theme.colors.textOnPrimary,
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 16,
   },
 });
