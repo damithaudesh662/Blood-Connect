@@ -10,11 +10,14 @@ import { RequestDetailScreen } from "../screens/donor/RequestDetailScreen";
 import { DonorResponsesScreen } from "../screens/donor/DonorResponsesScreen";
 import { MapViewScreen } from "../screens/common/MapViewScreen";
 import { DonorProfileScreen } from "../screens/donor/DonorProfileScreen";
+import { HospitalPastRequestsScreen } from "../screens/hospital/HospitalPastRequestsScreen";
+import { HospitalEditRequestScreen } from "../screens/hospital/HospitalEditRequestScreen";
 
 export type AppStackParamList = {
   DonorHome: undefined;
   HospitalHome: undefined;
   CreateRequest: undefined;
+  HospitalPastRequests: undefined;
   RequestDetail: {
     id: string;
     hospitalName: string;
@@ -32,6 +35,11 @@ export type AppStackParamList = {
     longitude: number;
   };
   DonorProfile: undefined;
+  HospitalEditRequest: {
+    id: string | number;
+    bloodType: string;
+    units: number;
+  };
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -65,6 +73,14 @@ export const AppNavigator: React.FC = () => {
       <Stack.Screen name="DonorResponses" component={DonorResponsesScreen} />
       <Stack.Screen name="MapViewScreen" component={MapViewScreen} />
       <Stack.Screen name="DonorProfile" component={DonorProfileScreen} />
+      <Stack.Screen
+        name="HospitalPastRequests"
+        component={HospitalPastRequestsScreen}
+      />
+      <Stack.Screen
+        name="HospitalEditRequest"
+        component={HospitalEditRequestScreen}
+      />
     </Stack.Navigator>
   );
 };
