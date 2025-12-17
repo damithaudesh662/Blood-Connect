@@ -22,6 +22,7 @@ type HospitalRequest = {
   status: "Open" | "Partially Filled" | "Closed";
   createdAt: string;
   notes?: string | null;
+  hospitalName: string; // We use this for the header
   respondedCount: number;
   donatedCount: number;
 };
@@ -34,11 +35,8 @@ export const HospitalHomeScreen: React.FC = () => {
   const { signOut } = useAuth();
   const navigation = useNavigation<NavProp>();
 
-  // Store ALL data to calculate totals
   const [allRequests, setAllRequests] = useState<HospitalRequest[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
 
   const loadRequests = async () => {
@@ -46,7 +44,7 @@ export const HospitalHomeScreen: React.FC = () => {
       setLoading(true);
       const res = await api.get("/hospital/requests");
       setAllRequests(res.data.requests ?? []);
-      setCurrentPage(1); // Reset to page 1 on refresh
+      setCurrentPage(1); 
     } catch (error) {
       console.log("Failed to load hospital requests", error);
     } finally {
@@ -60,13 +58,18 @@ export const HospitalHomeScreen: React.FC = () => {
     }, [])
   );
 
-  // 1. Separate Active vs Closed (for top stats)
+  // Extract Hospital Name from the first request (if available)
+  // Fallback to "Hospital Dashboard" if no data is loaded yet
+  const hospitalName = allRequests.length > 0 
+    ? allRequests[0].hospitalName 
+    : "Hospital Dashboard";
+
   const activeRequests = allRequests.filter(
     (r) => r.status === "Open" || r.status === "Partially Filled"
   );
   const closedRequests = allRequests.filter((r) => r.status === "Closed");
 
-  // 2. Calculate Pagination Logic
+  // Pagination Logic
   const totalPages = Math.ceil(activeRequests.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentData = activeRequests.slice(startIndex, startIndex + ITEMS_PER_PAGE);
@@ -95,6 +98,8 @@ export const HospitalHomeScreen: React.FC = () => {
             <Text style={styles.statusText}>{item.status}</Text>
           </View>
         </View>
+
+        {/* Removed Hospital Name from here as requested */}
 
         <Text style={styles.reqText}>
           Units requested:{" "}
@@ -136,7 +141,6 @@ export const HospitalHomeScreen: React.FC = () => {
     );
   };
 
-  // Footer component with Next/Prev buttons
   const renderPaginationFooter = () => {
     if (activeRequests.length === 0) return null;
 
@@ -174,7 +178,8 @@ export const HospitalHomeScreen: React.FC = () => {
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.appTitle}>Blood Connect</Text>
-          <Text style={styles.appSubtitle}>Hospital Dashboard</Text>
+          {/* Hospital Name Displayed Here at the Top */}
+          <Text style={styles.appSubtitle}>{hospitalName}</Text>
         </View>
 
         <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
@@ -222,12 +227,12 @@ export const HospitalHomeScreen: React.FC = () => {
         />
       ) : (
         <FlatList
-          data={currentData} // Render only the slice for current page
+          data={currentData}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderRequest}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          ListFooterComponent={renderPaginationFooter} // Add buttons at the bottom
+          ListFooterComponent={renderPaginationFooter}
           ListEmptyComponent={
             <Text style={styles.emptyText}>No current requests.</Text>
           }
@@ -256,8 +261,10 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
   },
   appSubtitle: {
-    fontSize: 14,
+    fontSize: 16, // Increased size slightly for better visibility
     color: theme.colors.text,
+    marginTop: 2,
+    fontWeight: "500",
   },
   logoutButton: {
     paddingVertical: theme.spacing.xs,
