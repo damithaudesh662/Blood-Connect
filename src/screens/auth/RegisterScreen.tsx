@@ -14,8 +14,8 @@ import {
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Location from "expo-location";
 import { Picker } from "@react-native-picker/picker";
-import { Ionicons } from "@expo/vector-icons"; // <--- IMPORT ADDED
-import * as Notifications from "expo-notifications"; // <--- EXPO NOTIFICATIONS IMPORT
+import { Ionicons } from "@expo/vector-icons"; 
+import * as Notifications from "expo-notifications"; 
 import { theme } from "../../theme/theme";
 import { useAuth } from "../../navigation/RootNavigator";
 import type { AuthStackParamList } from "../../navigation/AuthNavigator";
@@ -30,9 +30,9 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
-    // Add these two properties to satisfy the TypeScript type 'NotificationBehavior'
-    shouldShowBanner: true, // <--- ADDED
-    shouldShowList: true, // <--- ADDED
+    
+    shouldShowBanner: true, 
+    shouldShowList: true, 
   }),
 });
 
@@ -165,7 +165,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
             }
 
             const tokenObject = await Notifications.getExpoPushTokenAsync({
-              projectId: PROJECT_ID, // <--- Using the environment variable
+              projectId: PROJECT_ID, 
             });
 
             fcmToken = tokenObject.data;
@@ -228,7 +228,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       console.error("DEBUG: FATAL ERROR caught in final catch block.");
       console.error("DEBUG: Full error object:", error);
 
-      // Note: error?.response?.data?.error checks for Axios error structure.
+      
       const message =
         error?.response?.data?.error ?? "Could not register. Please try again.";
       Alert.alert("Registration error", message);
@@ -241,14 +241,14 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* --- BACK BUTTON ADDED HERE --- */}
+      
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
         <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
       </TouchableOpacity>
-      {/* ----------------------------- */}
+      
 
       <Text style={styles.title}>{title}</Text>
 
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     justifyContent: "center",
   },
-  // --- NEW STYLE ADDED ---
+  
   backButton: {
     position: "absolute",
     top: 50,
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: 8,
   },
-  // -----------------------
+  
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
-    height: 44, // Enforcing height consistency
+    height: 44, 
     justifyContent: "center",
     marginBottom: theme.spacing.md,
     backgroundColor: "#FFFFFF",
@@ -464,10 +464,10 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radius.md,
     backgroundColor: "#FFFFFF",
-    // Android picker usually handles its own height well within a view
+    
   },
   picker: {
-    height: 50, // Standard android touch target
+    height: 50, 
     width: "100%",
   },
   // New Styles for iOS Interaction

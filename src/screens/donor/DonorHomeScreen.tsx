@@ -1,6 +1,5 @@
 
 
-// src/screens/donor/DonorHomeScreen.tsx
 import React, { useState, useCallback } from "react";
 import {
   View,
@@ -151,7 +150,6 @@ export const DonorHomeScreen: React.FC = () => {
     };
   };
 
-  // refresh every time screen comes into focus
   useFocusEffect(
     useCallback(() => {
       loadNearbyRequests();

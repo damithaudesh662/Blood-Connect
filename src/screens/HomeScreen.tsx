@@ -31,11 +31,10 @@ export const HomeScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Top Section: Hero Image & Text */}
+        
         <View style={styles.topSection}>
           <View style={styles.imageContainer}>
             <Image
-              // Use require to load the local image asset based on your project structure
               source={require('../../assets/blood_donor_logo.png')} //
               style={styles.heroImage}
               resizeMode="contain"
@@ -49,7 +48,7 @@ export const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Bottom Section: Action Buttons */}
+        
         <View style={styles.buttonContainer}>
           <Text style={styles.actionLabel}>Continue as</Text>
 
@@ -94,7 +93,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: theme.spacing.xl,
-    justifyContent: 'space-between', // Pushes top section up and buttons down
+    justifyContent: 'space-between', 
   },
   topSection: {
     flex: 1,
@@ -120,7 +119,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: '800', // Extra bold for modern feel
+    fontWeight: '800', 
     color: theme.colors.primary,
     marginBottom: theme.spacing.sm,
     textAlign: 'center',
@@ -130,8 +129,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: theme.colors.text,
     textAlign: 'center',
-    lineHeight: 24, // Better readability
-    opacity: 0.8, // Slightly softer than pure black text
+    lineHeight: 24, 
+    opacity: 0.8, 
   },
   buttonContainer: {
     borderRadius: 12,
@@ -148,15 +147,14 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   button: {
-    flexDirection: 'row', // Align icon and text horizontally
+    flexDirection: 'row', 
     paddingVertical: theme.spacing.lg,
     paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.lg, //Rounds corners more significantly
+    borderRadius: theme.radius.lg, 
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
   },
-  // Modern soft shadow styling
   shadow: {
     ...Platform.select({
       ios: {

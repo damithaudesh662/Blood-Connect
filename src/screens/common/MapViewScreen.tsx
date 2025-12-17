@@ -1,4 +1,4 @@
-// src/screens/common/MapViewScreen.tsx
+
 import React from "react";
 import { View, StyleSheet, Text } from "react-native";
 import MapView, { Marker } from "react-native-maps";
@@ -11,12 +11,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "MapViewScreen">;
 export const MapViewScreen: React.FC<Props> = ({ route }) => {
   const { hospitalName, latitude, longitude, donorLat, donorLng } = route.params;
   const hasDonor = typeof donorLat === "number" && typeof donorLng === "number";
-  // const region = {
-  //   latitude,
-  //   longitude,
-  //   latitudeDelta: 0.05,
-  //   longitudeDelta: 0.05,
-  // };
+  
 
   const region = hasDonor
     ? {
