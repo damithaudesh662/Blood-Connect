@@ -15,12 +15,11 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Location from "expo-location";
 import { Picker } from "@react-native-picker/picker";
 import { Ionicons } from "@expo/vector-icons"; // <--- IMPORT ADDED
-import * as Notifications from 'expo-notifications'; // <--- EXPO NOTIFICATIONS IMPORT
+import * as Notifications from "expo-notifications"; // <--- EXPO NOTIFICATIONS IMPORT
 import { theme } from "../../theme/theme";
 import { useAuth } from "../../navigation/RootNavigator";
 import type { AuthStackParamList } from "../../navigation/AuthNavigator";
 import api from "../../services/app";
-
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Register">;
 
@@ -32,11 +31,10 @@ Notifications.setNotificationHandler({
     shouldPlaySound: true,
     shouldSetBadge: false,
     // Add these two properties to satisfy the TypeScript type 'NotificationBehavior'
-    shouldShowBanner: true,  // <--- ADDED
-    shouldShowList: true,    // <--- ADDED
+    shouldShowBanner: true, // <--- ADDED
+    shouldShowList: true, // <--- ADDED
   }),
 });
-
 
 export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const { pendingRole } = useAuth();
@@ -54,6 +52,8 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
 
   // State to handle iOS Modal visibility
   const [showPicker, setShowPicker] = useState(false);
+
+  const [phone, setPhone] = useState("");
 
   const title =
     pendingRole === "hospital" ? "Hospital Register" : "Donor Register";
@@ -89,7 +89,7 @@ export const RegisterScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-const handleRegister = async () => {
+  const handleRegister = async () => {
     console.log("--- START REGISTER HANDLER ---");
 
     if (!pendingRole) {
@@ -128,50 +128,60 @@ const handleRegister = async () => {
 
       // --- EXPO TOKEN LOGIC START ---
       let fcmToken = null;
-      if (pendingRole === 'donor') {
+      if (pendingRole === "donor") {
         try {
-          console.log("DEBUG: Donor role detected. Attempting to get Expo Token.");
-          
+          console.log(
+            "DEBUG: Donor role detected. Attempting to get Expo Token."
+          );
+
           // 1. Check/Request Notification Permissions
           console.log("DEBUG: Awaiting getPermissionsAsync...");
-          const { status: existingStatus } = await Notifications.getPermissionsAsync();
+          const { status: existingStatus } =
+            await Notifications.getPermissionsAsync();
           let finalStatus = existingStatus;
           console.log(`DEBUG: Existing permission status: ${existingStatus}`);
-          
-          if (existingStatus !== 'granted') {
+
+          if (existingStatus !== "granted") {
             console.log("DEBUG: Requesting new notification permission...");
             const { status } = await Notifications.requestPermissionsAsync();
             finalStatus = status;
             console.log(`DEBUG: New permission status: ${finalStatus}`);
           }
 
-          if (finalStatus === 'granted') {
+          if (finalStatus === "granted") {
             // 2. Get the Expo Push Token
-            console.log("DEBUG: Permission granted. Awaiting getExpoPushTokenAsync...");
+            console.log(
+              "DEBUG: Permission granted. Awaiting getExpoPushTokenAsync..."
+            );
 
-            const PROJECT_ID = process.env.EXPO_PUBLIC_PROJECT_ID; 
+            const PROJECT_ID = process.env.EXPO_PUBLIC_PROJECT_ID;
 
             console.log(`DEBUG: Retrieved PROJECT_ID from env: ${PROJECT_ID}`);
-            
+
             if (!PROJECT_ID) {
-                console.error("FATAL: EXPO_PUBLIC_PROJECT_ID is not defined.");
-                // Add an alert here if you want to notify the developer
-                throw new Error("Missing EXPO_PUBLIC_PROJECT_ID");
+              console.error("FATAL: EXPO_PUBLIC_PROJECT_ID is not defined.");
+              // Add an alert here if you want to notify the developer
+              throw new Error("Missing EXPO_PUBLIC_PROJECT_ID");
             }
 
             const tokenObject = await Notifications.getExpoPushTokenAsync({
-                projectId: PROJECT_ID, // <--- Using the environment variable
+              projectId: PROJECT_ID, // <--- Using the environment variable
             });
-      
 
             fcmToken = tokenObject.data;
-            console.log(`DEBUG: Successfully acquired Expo Push Token: ${fcmToken}`);
+            console.log(
+              `DEBUG: Successfully acquired Expo Push Token: ${fcmToken}`
+            );
           } else {
-            console.error("DEBUG: Notification permission NOT granted. Token will be null.");
+            console.error(
+              "DEBUG: Notification permission NOT granted. Token will be null."
+            );
           }
-
         } catch (tokenError) {
-          console.error("DEBUG: FATAL ERROR during Expo Token retrieval:", tokenError);
+          console.error(
+            "DEBUG: FATAL ERROR during Expo Token retrieval:",
+            tokenError
+          );
           // Proceed with registration even if token fails, token will be null
         }
       }
@@ -191,14 +201,17 @@ const handleRegister = async () => {
         location: locationArray,
         fcmToken: fcmToken, // This is the Expo Token
       };
-      
-      console.log(`DEBUG: Sending API POST to /auth/register with payload (check backend log for fcmToken): ${JSON.stringify(registrationPayload)}`);
-      
+
+      console.log(
+        `DEBUG: Sending API POST to /auth/register with payload (check backend log for fcmToken): ${JSON.stringify(
+          registrationPayload
+        )}`
+      );
+
       // --- API CALL START ---
       await api.post("/auth/register", registrationPayload);
       console.log("DEBUG: API POST successful! Backend returned 201.");
       // --- API CALL END ---
-
 
       Alert.alert(
         "Success",
@@ -214,13 +227,12 @@ const handleRegister = async () => {
     } catch (error: any) {
       console.error("DEBUG: FATAL ERROR caught in final catch block.");
       console.error("DEBUG: Full error object:", error);
-      
+
       // Note: error?.response?.data?.error checks for Axios error structure.
       const message =
         error?.response?.data?.error ?? "Could not register. Please try again.";
       Alert.alert("Registration error", message);
       console.error(`DEBUG: Displayed user error: ${message}`);
-      
     } finally {
       setLoading(false);
       console.log("DEBUG: setLoading(false) executed.");
@@ -248,6 +260,20 @@ const handleRegister = async () => {
         onChangeText={setName}
       />
 
+      <View style={styles.phoneRow}>
+        <View style={styles.phonePrefixBox}>
+          <Text style={styles.phonePrefixText}>+94</Text>
+        </View>
+        <TextInput
+          style={[styles.input, styles.phoneInput]}
+          placeholder="Mobile number"
+          placeholderTextColor="#999"
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
+        />
+      </View>
+
       {pendingRole === "donor" && (
         <View style={styles.dropdownContainer}>
           <Text style={styles.dropdownLabel}>Blood group</Text>
@@ -260,11 +286,7 @@ const handleRegister = async () => {
                 onValueChange={(value) => setBloodGroup(value)}
                 style={styles.picker}
               >
-                <Picker.Item
-                  label="Select blood group"
-                  value=""
-                  color="#999"
-                />
+                <Picker.Item label="Select blood group" value="" color="#999" />
                 {BLOOD_TYPES.map((type) => (
                   <Picker.Item
                     key={type}
@@ -468,6 +490,29 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 20,
+  },
+  phoneRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: theme.spacing.md,
+  },
+  phonePrefixBox: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
+    paddingHorizontal: theme.spacing.md,
+    height: 44,
+    justifyContent: "center",
+    marginRight: theme.spacing.sm,
+    backgroundColor: "#FFFFFF",
+  },
+  phonePrefixText: {
+    color: theme.colors.text,
+    fontWeight: "600",
+  },
+  phoneInput: {
+    flex: 1,
+    marginBottom: 0,
   },
   modalToolbar: {
     flexDirection: "row",
