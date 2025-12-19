@@ -177,7 +177,7 @@ export const DonorHomeScreen: React.FC = () => {
   const computeEligibility = () => {
     if (!lastDonationDate) {
       return {
-        nextEligibleLabel: "Eligible now",
+        nextEligibleLabel: "Eligible Now",
         lastDonationLabel: "None",
       };
     }

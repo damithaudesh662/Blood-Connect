@@ -51,7 +51,7 @@ export const HomeScreen: React.FC = () => {
 
         {/* Bottom Section: Action Buttons */}
         <View style={styles.buttonContainer}>
-          <Text style={styles.actionLabel}>Continue as</Text>
+          {/* <Text style={styles.actionLabel}>Continue as</Text> */}
 
           <TouchableOpacity
             style={[styles.button, styles.donorButton, styles.shadow]}
@@ -64,10 +64,10 @@ export const HomeScreen: React.FC = () => {
               color={theme.colors.textOnPrimary}
               style={styles.buttonIcon}
             />
-            <Text style={styles.buttonText}>Donor</Text>
+            <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[styles.button, styles.hospitalButton, styles.shadow]}
             activeOpacity={0.8}
             onPress={() => handlePress('hospital')}
@@ -79,7 +79,7 @@ export const HomeScreen: React.FC = () => {
               style={styles.buttonIcon}
             />
             <Text style={styles.buttonText}>Hospital / Blood Bank</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </SafeAreaView>
